@@ -26,10 +26,11 @@ export const useGitLabIntegration = () => {
   const connectProject = useCallback(async (projectId: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch('/functions/v1/gitlab-auth', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gitlab-auth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({ projectId }),
       })
@@ -62,10 +63,11 @@ export const useGitLabIntegration = () => {
   const listFiles = useCallback(async (path = '', ref = 'main'): Promise<FileNode[]> => {
     if (!project) throw new Error('No project connected')
 
-    const response = await fetch('/functions/v1/gitlab-files', {
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gitlab-files`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
       },
       body: JSON.stringify({
         projectId: project.id,
@@ -83,10 +85,11 @@ export const useGitLabIntegration = () => {
   const readFile = useCallback(async (filePath: string, ref = 'main'): Promise<string> => {
     if (!project) throw new Error('No project connected')
 
-    const response = await fetch('/functions/v1/gitlab-files', {
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gitlab-files`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
       },
       body: JSON.stringify({
         projectId: project.id,
@@ -104,10 +107,11 @@ export const useGitLabIntegration = () => {
   const writeFile = useCallback(async (filePath: string, content: string, commitMessage?: string): Promise<void> => {
     if (!project) throw new Error('No project connected')
 
-    const response = await fetch('/functions/v1/gitlab-files', {
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gitlab-files`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
       },
       body: JSON.stringify({
         projectId: project.id,
@@ -131,10 +135,11 @@ export const useGitLabIntegration = () => {
   const deleteFile = useCallback(async (filePath: string, commitMessage?: string): Promise<void> => {
     if (!project) throw new Error('No project connected')
 
-    const response = await fetch('/functions/v1/gitlab-files', {
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gitlab-files`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
       },
       body: JSON.stringify({
         projectId: project.id,
