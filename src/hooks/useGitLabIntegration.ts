@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/integrations/supabase/client'
 
 interface GitLabProject {
   id: number
@@ -26,18 +27,15 @@ export const useGitLabIntegration = () => {
   const connectProject = useCallback(async (projectId: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gitlab-auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ projectId }),
+      const { data, error } = await supabase.functions.invoke('gitlab-auth', {
+        body: { projectId },
       })
 
-      const data = await response.json()
+      if (error) {
+        throw new Error(error.message)
+      }
 
-      if (data.success) {
+      if (data?.success) {
         setProject(data.project)
         setIsConnected(true)
         toast({
@@ -46,7 +44,7 @@ export const useGitLabIntegration = () => {
         })
         return true
       } else {
-        throw new Error(data.error)
+        throw new Error(data?.error || 'Failed to connect')
       }
     } catch (error) {
       toast({
@@ -63,68 +61,53 @@ export const useGitLabIntegration = () => {
   const listFiles = useCallback(async (path = '', ref = 'main'): Promise<FileNode[]> => {
     if (!project) throw new Error('No project connected')
 
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gitlab-files`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify({
+    const { data, error } = await supabase.functions.invoke('gitlab-files', {
+      body: {
         projectId: project.id,
         action: 'list',
         path,
         ref,
-      }),
+      },
     })
 
-    const data = await response.json()
-    if (!data.success) throw new Error(data.error)
+    if (error) throw new Error(error.message)
+    if (!data?.success) throw new Error(data?.error || 'Failed to list files')
     return data.files
   }, [project])
 
   const readFile = useCallback(async (filePath: string, ref = 'main'): Promise<string> => {
     if (!project) throw new Error('No project connected')
 
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gitlab-files`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify({
+    const { data, error } = await supabase.functions.invoke('gitlab-files', {
+      body: {
         projectId: project.id,
         action: 'read',
         filePath,
         ref,
-      }),
+      },
     })
 
-    const data = await response.json()
-    if (!data.success) throw new Error(data.error)
+    if (error) throw new Error(error.message)
+    if (!data?.success) throw new Error(data?.error || 'Failed to read file')
     return data.content
   }, [project])
 
   const writeFile = useCallback(async (filePath: string, content: string, commitMessage?: string): Promise<void> => {
     if (!project) throw new Error('No project connected')
 
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gitlab-files`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify({
+    const { data, error } = await supabase.functions.invoke('gitlab-files', {
+      body: {
         projectId: project.id,
         action: 'write',
         filePath,
         content,
         commitMessage,
         ref: project.default_branch,
-      }),
+      },
     })
 
-    const data = await response.json()
-    if (!data.success) throw new Error(data.error)
+    if (error) throw new Error(error.message)
+    if (!data?.success) throw new Error(data?.error || 'Failed to write file')
 
     toast({
       title: 'File saved',
@@ -135,23 +118,18 @@ export const useGitLabIntegration = () => {
   const deleteFile = useCallback(async (filePath: string, commitMessage?: string): Promise<void> => {
     if (!project) throw new Error('No project connected')
 
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gitlab-files`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify({
+    const { data, error } = await supabase.functions.invoke('gitlab-files', {
+      body: {
         projectId: project.id,
         action: 'delete',
         filePath,
         commitMessage,
         ref: project.default_branch,
-      }),
+      },
     })
 
-    const data = await response.json()
-    if (!data.success) throw new Error(data.error)
+    if (error) throw new Error(error.message)
+    if (!data?.success) throw new Error(data?.error || 'Failed to delete file')
 
     toast({
       title: 'File deleted',
