@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ChevronRight, ChevronDown, File, Folder, FolderOpen, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,8 +33,12 @@ const TreeNode = ({ node, level, activeFileId, onSelect, onCreateFile }: TreeNod
 
   const handleSubmit = () => {
     if (newName.trim()) {
-      const name = isCreating === 'file' && !newName.endsWith('.md') ? `${newName}.md` : newName;
-      onCreateFile(node.id, name, isCreating!);
+      let finalName = newName.trim();
+      // Only add .md extension if it's a file and doesn't already have it
+      if (isCreating === 'file' && !finalName.endsWith('.md')) {
+        finalName = `${finalName}.md`;
+      }
+      onCreateFile(node.id, finalName, isCreating!);
       setIsCreating(null);
       setNewName('');
     }
@@ -144,8 +149,12 @@ export const FileTree = ({ nodes, activeFileId, onFileSelect, onCreateFile }: Fi
 
   const handleSubmit = () => {
     if (newName.trim()) {
-      const name = isCreating === 'file' && !newName.endsWith('.md') ? `${newName}.md` : newName;
-      onCreateFile(null, name, isCreating!);
+      let finalName = newName.trim();
+      // Only add .md extension if it's a file and doesn't already have it
+      if (isCreating === 'file' && !finalName.endsWith('.md')) {
+        finalName = `${finalName}.md`;
+      }
+      onCreateFile(null, finalName, isCreating!);
       setIsCreating(null);
       setNewName('');
     }

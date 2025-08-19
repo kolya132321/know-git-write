@@ -17,11 +17,20 @@ export const useFileSystem = () => {
     if (isConnected && type === 'file') {
       // For GitLab integration, create files directly in the repository
       const parentPath = parentId ? state.nodes[parentId]?.path : '';
-      const filePath = parentPath ? `${parentPath}/${name}.md` : `${name}.md`;
-      const content = `# ${name}\n\nStart writing your content here...`;
+      let filePath;
+      
+      if (name.endsWith('.md')) {
+        // Already has .md extension
+        filePath = parentPath ? `${parentPath}/${name}` : name;
+      } else {
+        // Add .md extension
+        filePath = parentPath ? `${parentPath}/${name}.md` : `${name}.md`;
+      }
+      
+      const content = `# ${name.replace('.md', '')}\n\nStart writing your content here...`;
       
       try {
-        await writeFile(filePath, content, `Create ${name}.md`);
+        await writeFile(filePath, content, `Create ${name}`);
         await loadFiles(); // Refresh the file tree
         return;
       } catch (error) {
@@ -35,12 +44,18 @@ export const useFileSystem = () => {
     const parentPath = parentId ? state.nodes[parentId]?.path : '';
     const path = parentPath ? `${parentPath}/${name}` : name;
     
+    // For local mode, ensure files have .md extension if they don't already
+    let displayName = name;
+    if (type === 'file' && !name.endsWith('.md')) {
+      displayName = `${name}.md`;
+    }
+    
     const newNode: FileNode = {
       id,
-      name: type === 'file' ? `${name}.md` : name,
+      name: displayName,
       type,
       path,
-      content: type === 'file' ? `# ${name}\n\nStart writing your content here...` : undefined,
+      content: type === 'file' ? `# ${name.replace('.md', '')}\n\nStart writing your content here...` : undefined,
       children: type === 'directory' ? [] : undefined,
       parentId: parentId || undefined,
     };
